@@ -17,3 +17,11 @@ class GameState():
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
         self.whiteToMove = True
         self.moveLog = []
+
+class Move():
+
+    def __init__(self, sqStart, sqEnd, board):
+        self.startCol = sqStart[0]
+        self.startRow = sqStart[1]
+        self.endCol = sqEnd[0]
+        self.endRow = sqEnd[1]
