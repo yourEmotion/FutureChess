@@ -18,7 +18,7 @@ def loadImages():
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
 
-def main():
+def Game():
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -71,6 +71,7 @@ def main():
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
         p.display.flip()
+    p.quit()
 
 
 def drawGameState(screen, gs, sqSelected):
@@ -98,5 +99,3 @@ def drawPieces(screen, board):
 def drawSelectLine(screen, board, row, col):
     p.draw.rect(screen, p.Color("green"), p.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE), 3)
 
-if __name__ == "__main__":
-    main()
