@@ -51,12 +51,19 @@ def main():
                         move_is_made = True
                         print(move.getChessNotation())
                         gs.makeMove(move)
-                    sqSelected = ()
-                    playerClicks = []
+                        sqSelected = ()
+                        playerClicks = []
+                    elif gs.board[row][col] == "--":
+                        sqSelected = ()
+                        playerClicks = []
+                    else:
+                        playerClicks = [sqSelected]
+
+
             #нажата клавиша на клавиатуре
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_LCTRL:
-                    gs.UndoMove()
+                    gs.undoMove()
                     move_is_made = True
         if move_is_made:
             valid_moves = gs.getValidMoves()
