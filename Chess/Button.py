@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QSizePolicy, QWidget
-from SettingsWindow import SettingsWindow
+'''from SettingsWindow import SettingsWindow '''
 from ChessMain import *
 
 
