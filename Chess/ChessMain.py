@@ -47,16 +47,17 @@ def Game():
                     playerClicks.append(sqSelected)
                 if len(playerClicks) == 2:
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    if move in valid_moves:
-                        move_is_made = True
-                        print(move.getChessNotation())
-                        gs.makeMove(move)
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            move_is_made = True
+                            print(move.getChessNotation())
+                            gs.makeMove(valid_moves[i])
+                            sqSelected = ()
+                            playerClicks = []
+                    if not move_is_made and gs.board[row][col] == "--":
                         sqSelected = ()
                         playerClicks = []
-                    elif gs.board[row][col] == "--":
-                        sqSelected = ()
-                        playerClicks = []
-                    else:
+                    elif not move_is_made:
                         playerClicks = [sqSelected]
 
 
