@@ -24,6 +24,8 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     gs = ChessEngine.GameState()
+    valid_moves = gs.getValidMoves()
+    move_is_made = False
     loadImages()
     running = True
     sqSelected = ()
@@ -45,15 +47,20 @@ def main():
                     playerClicks.append(sqSelected)
                 if len(playerClicks) == 2:
                     move = ChessEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print(move.getChessNotation())
-                    gs.makeMove(move)
+                    if move in valid_moves:
+                        move_is_made = True
+                        print(move.getChessNotation())
+                        gs.makeMove(move)
                     sqSelected = ()
                     playerClicks = []
             #нажата клавиша на клавиатуре
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_LCTRL:
                     gs.UndoMove()
-
+                    move_is_made = True
+        if move_is_made:
+            valid_moves = gs.getValidMoves()
+            move_is_made = False
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
         p.display.flip()
