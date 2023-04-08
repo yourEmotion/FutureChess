@@ -32,6 +32,7 @@ def main():
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            #если нажата кнопка мыши
             elif e.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
@@ -48,6 +49,10 @@ def main():
                     gs.makeMove(move)
                     sqSelected = ()
                     playerClicks = []
+            #нажата клавиша на клавиатуре
+            elif e.type == p.KEYDOWN:
+                if e.key == p.K_LCTRL:
+                    gs.UndoMove()
 
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
