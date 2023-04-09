@@ -21,7 +21,7 @@ class GameState:
         self.blackKingLocation = (0, 4)
         self.checkMate = False
         self.staleMate = False
-        self.empassantPossible = ()
+        self.enpassantPossible = ()
 
     def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
@@ -40,7 +40,13 @@ class GameState:
             Надо бы здесь сделать всплывающее окно или типо того
             для выбора promotion, пока сразу в королеву 
             '''
+        if move.isEnpassantMove:
+            self.board[move.startRow][move.endCol] = "--"
 
+        if move.pieceMoved[1] == 'p' and abs(move.endRow - move.startRow) == 2:
+            self.enpassantPossible = ((move.startRow + move.endRow) // 2, move.startCol)
+        else:
+            self.enpassantPossible = ()
     def undoMove(self):
         if len(self.moveLog) != 0:
             move = self.moveLog.pop()
@@ -50,10 +56,19 @@ class GameState:
 
             if move.pieceMoved == 'wK':
                 self.whiteKingLocation = (move.startRow, move.startCol)
-            if move.pieceMoved == 'bK':
+            elif move.pieceMoved == 'bK':
                 self.blackKingLocation = (move.startRow, move.startCol)
 
+            #undo enpassant
+            if move.isEnpassantMove:
+                self.board[move.endRow][move.endCol] = "--"
+                self.board[move.startRow][move.endCol] = move.pieceCaptured
+                self.enpassantPossible = (move.endRow, move.endCol)
+            if move.pieceMoved[1] == 'p' and abs(move.startRow - move.endRow) == 2:
+                self.enpassantPossible = ()
+
     def getValidMoves(self):
+        tmp_enapassant_possible = self.enpassantPossible
         moves = self.getAllPossibleMoves()
         for i in range(len(moves) - 1, -1, -1):
             self.makeMove(moves[i])
@@ -70,6 +85,7 @@ class GameState:
         else:
             self.checkMate = False
             self.staleMate = False
+        self.enpassantPossible = tmp_enapassant_possible
         return moves
 
     def inCheck(self):
@@ -111,34 +127,61 @@ class GameState:
     def getPawnMoves(self, r, c, moves):
         if self.whiteToMove:
             if r != 0:
+                #движение на 1 клетку
                 if self.board[r - 1][c] == "--":
                     moves.append(Move((r, c), (r - 1, c), self.board))
+                    #движение на 2 клетки
                     if r == 6 and self.board[r - 2][c] == "--":
                         moves.append(Move((r, c), (r - 2, c), self.board))
+                #Атака налево и направо
                 if 0 < c < 7:
                     if self.board[r - 1][c - 1][0] == 'b':
                         moves.append(Move((r, c), (r - 1, c - 1), self.board))
+                    elif (r - 1, c - 1) == self.enpassantPossible:
+                        moves.append(Move((r, c), (r - 1, c - 1), self.board, isEmpassantMove=True))
+
                     if self.board[r - 1][c + 1][0] == 'b':
                         moves.append(Move((r, c), (r - 1, c + 1), self.board))
+                    elif (r - 1, c + 1) == self.enpassantPossible:
+                        moves.append(Move((r, c), (r - 1, c + 1), self.board, isEmpassantMove=True))
+                #Атака направо
                 if c == 0 and self.board[r - 1][c + 1][0] == 'b':
                     moves.append(Move((r, c), (r - 1, c + 1), self.board))
+                elif c == 0 and (r - 1, c + 1) == self.enpassantPossible:
+                    moves.append(Move((r, c), (r - 1, c + 1), self.board, isEmpassantMove=True))
+                #Атака налево
                 if c == 7 and self.board[r - 1][c - 1][0] == 'b':
                     moves.append(Move((r, c), (r - 1, c - 1), self.board))
+                elif c == 7 and (r - 1, c - 1) == self.enpassantPossible:
+                    moves.append(Move((r, c), (r - 1, c - 1), self.board, isEmpassantMove=True))
         else:
             if r != 7:
+                #движение на 1 клетку
                 if self.board[r + 1][c] == "--":
                     moves.append(Move((r, c), (r + 1, c), self.board))
+                    # движение на 2 клетки
                     if r == 1 and self.board[r + 2][c] == "--":
                         moves.append(Move((r, c), (r + 2, c), self.board))
+                #Атака налево и направо
                 if 0 < c < 7:
                     if self.board[r + 1][c - 1][0] == 'w':
                         moves.append(Move((r, c), (r + 1, c - 1), self.board))
+                    elif (r + 1, c - 1) == self.enpassantPossible:
+                        moves.append(Move((r, c), (r + 1, c - 1), self.board, isEmpassantMove=True))
                     if self.board[r + 1][c + 1][0] == 'w':
                         moves.append(Move((r, c), (r + 1, c + 1), self.board))
+                    elif (r + 1, c + 1) == self.enpassantPossible:
+                        moves.append(Move((r, c), (r + 1, c + 1), self.board, isEmpassantMove=True))
+                #Атака направо
                 if c == 0 and self.board[r + 1][c + 1][0] == 'w':
                     moves.append(Move((r, c), (r + 1, c + 1), self.board))
+                elif c == 0 and (r + 1, c + 1) == self.enpassantPossible:
+                    moves.append(Move((r, c), (r + 1, c + 1), self.board, isEmpassantMove=True))
+                #Атака налево
                 if c == 7 and self.board[r + 1][c - 1][0] == 'w':
                     moves.append(Move((r, c), (r + 1, c - 1), self.board))
+                elif c == 7 and (r + 1, c - 1) == self.enpassantPossible:
+                    moves.append(Move((r, c), (r + 1, c - 1), self.board, isEmpassantMove=True))
 
     def getRookMoves(self, r, c, moves):
         my_color = "w" if self.whiteToMove else "b"
@@ -211,7 +254,7 @@ class Move():
     filesToCols = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
     colsToFiles = {v: k for k, v in filesToCols.items()}
 
-    def __init__(self, startSq, endSq, board):
+    def __init__(self, startSq, endSq, board, isEmpassantMove=False):
         self.startRow = startSq[0]
         self.startCol = startSq[1]
         self.endRow = endSq[0]
@@ -219,9 +262,11 @@ class Move():
         self.pieceMoved = board[self.startRow][self.startCol]
         self.pieceCaptured = board[self.endRow][self.endCol]
         self.moveID = self.startRow * 1000 + self.startCol * 100 + self.endRow * 10 + self.endCol
-        self.isPawnPromotion = False
-        if (self.pieceMoved == 'wp' and self.endRow == 0) or (self.pieceMoved == 'bp' and self.endRow == 7):
-            self.isPawnPromotion = True
+
+        self.isEnpassantMove = isEmpassantMove
+        if self.isEnpassantMove:
+            self.pieceCaptured = 'wp' if self.pieceMoved == 'bp' else 'bp'
+        self.isPawnPromotion = (self.pieceMoved == 'wp' and self.endRow == 0) or (self.pieceMoved == 'bp' and self.endRow == 7)
 
     '''
     Тут можно добавить нормальную шахматную нотацию
