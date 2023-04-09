@@ -1,14 +1,16 @@
 from collections import defaultdict
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QMainWindow
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QMainWindow, QRadioButton
 from ChessMain import Game
-from random import randint
 
 
 WIDTH = 700
 HEIGHT = 600
 WIDTH_INDENT = 500
 HEIGHT_INDENT = 300
+
+GAME_TIME = None
+ADD_TIME = None
 
 
 class MainMenu(QMainWindow):
@@ -64,22 +66,82 @@ class MainMenu(QMainWindow):
 
     def playVsAIButtonPress(self):
         self.hide()
-        human = randint(0, 1)
-        if human == 0:
-            Game(white_is_human=True, black_is_human=False)
-        else:
-            Game(white_is_human=False, black_is_human=True)
-        self.show()
+        self.new_window = ChoiceColorWindow()
 
     def settingsButtonPress(self):
         self.hide()
         self.new_window = SettingsWindow()
+
     def creditsButtonPress(self):
         self.hide()
         self.new_window = CreditsWindow()
 
 
+class ChoiceColorWindow(QWidget):
+    white_chosen = None
+    buttons = defaultdict()
+
+    def __init__(self):
+        super().__init__()
+        self.setFixedWidth(WIDTH)
+        self.setFixedHeight(HEIGHT)
+        self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
+        self.setWindowTitle("Color choice")
+
+        self.title = QLabel('Choose the color', self)
+        self.title.setStyleSheet("color: black; font-weight: bold")
+        self.title.move(WIDTH // 2 - 160, 30)
+        self.title.setFixedSize(WIDTH, 100)
+        self.font_title = self.title.font()
+        self.font_title.setPointSize(32)
+        self.title.setFont(self.font_title)
+
+        color = "white"
+        self.buttons[color] = QPushButton(self)
+        self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
+        self.buttons[color].setGeometry(0, 0, 280, 200)
+        self.buttons[color].move(35, 250)
+        self.buttons[color].setText(color)
+        self.font = self.buttons[color].font()
+        self.font.setPointSize(32)
+        self.buttons[color].setFont(self.font)
+        self.buttons[color].clicked.connect(self.whiteStartButtonPress)
+
+        color = "black"
+        self.buttons[color] = QPushButton(self)
+        self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
+        self.buttons[color].setGeometry(0, 0, 280, 200)
+        self.buttons[color].move(385, 250)
+        self.buttons[color].setText(color)
+        self.font = self.buttons[color].font()
+        self.font.setPointSize(32)
+        self.buttons[color].setFont(self.font)
+        self.buttons[color].clicked.connect(self.blackStartButtonPress)
+
+        self.show()
+
+    def whiteStartButtonPress(self):
+        self.hide()
+        Game(white_is_human=True, black_is_human=False)
+        self.new_window = MainMenu()
+        self.new_window.show()
+
+
+    def blackStartButtonPress(self):
+        self.hide()
+        Game(white_is_human=False, black_is_human=True)
+        self.new_window = MainMenu()
+        self.new_window.show()
+
+    def closeEvent(self, event):
+        event.accept()
+        self.new_window = MainMenu()
+        self.new_window.show()
+
+
 class SettingsWindow(QWidget):
+    buttons = defaultdict()
+
     def __init__(self):
         super().__init__()
         self.setFixedWidth(WIDTH)
@@ -95,7 +157,38 @@ class SettingsWindow(QWidget):
         self.font_title.setPointSize(32)
         self.title.setFont(self.font_title)
 
+        self.board_color = QLabel('Choose board color:', self)
+        self.board_color.setStyleSheet("color: black; font-weight: bold")
+        self.board_color.move(WIDTH // 2 - 90, 100)
+        self.board_color.setFixedSize(WIDTH, 100)
+        self.font_board_color = self.board_color.font()
+        self.font_board_color.setPointSize(16)
+        self.board_color.setFont(self.font_board_color)
+
+        self.board_colors = ("white-gray", "white-green", "white-blue", "white-brown")
+        self.board_color_set = "white-gray"
+        for index, color in enumerate(self.board_colors):
+            self.buttons[color] = QRadioButton(self)
+            self.buttons[color].setGeometry(0, 0, 300, 50)
+            self.buttons[color].move(25 + index * 180, 175)
+            self.buttons[color].setText(color)
+            self.buttons[color].clicked.connect(self.choiceColorButtonPress)
+
+        '''self.figures_colors = ("white-black", "red-black", "yellow-red", "red-white")
+        self.board_color_set = "white-black"
+        for index, color in enumerate(self.board_colors):
+            self.buttons[color] = QRadioButton(self)
+            self.buttons[color].setGeometry(0, 0, 300, 50)
+            self.buttons[color].move(25 + index * 180, 175)
+            self.buttons[color].setText(color)
+            self.buttons[color].clicked.connect(self.choiceColorButtonPress)'''
+
+
+
         self.show()
+
+    def choiceColorButtonPress(self):
+        pass
 
     def closeEvent(self, event):
         event.accept()
