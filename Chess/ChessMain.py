@@ -4,13 +4,14 @@
 
 import pygame as p
 import ChessEngine
+from collections import defaultdict
+
 
 WIDTH = HEIGHT = 512
 DIMENSION = 8
 SQ_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
-
 
 def loadImages():
     pieces = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bQ', 'bK']
@@ -19,6 +20,10 @@ def loadImages():
 
 
 def Game():
+    result = defaultdict()
+    result["game finished"] = False
+    result["white victory"] = False
+    result["black victory"] = False
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -34,7 +39,7 @@ def Game():
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-            #если нажата кнопка мыши
+            # Если нажата кнопка мыши
             elif e.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
@@ -72,13 +77,23 @@ def Game():
         drawGameState(screen, gs, sqSelected)
         clock.tick(MAX_FPS)
         p.display.flip()
+        if gs.checkMate:
+            running = False
+            if gs.whiteToMove:
+                result["game finished"] = True
+                result["black victory"] = True
+            else:
+                result["game finished"] = True
+                result["white victory"] = True
+            p.quit()
     p.quit()
+    return result
 
 
 def drawGameState(screen, gs, sqSelected):
     drawBoard(screen)
     drawPieces(screen, gs.board)
-    if (len(sqSelected) != 0):
+    if len(sqSelected) != 0:
         drawSelectLine(screen, gs.board, sqSelected[0], sqSelected[1])
 
 
