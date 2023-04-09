@@ -1,6 +1,8 @@
 from collections import defaultdict
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QMainWindow
 from ChessMain import Game
+from random import randint
 
 
 WIDTH = 700
@@ -9,7 +11,7 @@ WIDTH_INDENT = 500
 HEIGHT_INDENT = 300
 
 
-class MainMenu(QWidget):
+class MainMenu(QMainWindow):
     buttons = defaultdict()
 
     def __init__(self):
@@ -18,95 +20,63 @@ class MainMenu(QWidget):
         self.setFixedHeight(HEIGHT)
         self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
         self.setWindowTitle("Chess")
+        self.setStyleSheet("background-color: white")
 
-        self.buttons["Play"] = QPushButton(self)
-        self.buttons["Play"].setGeometry(0, 0, 670, 100)
-        self.buttons["Play"].move(15, 355)
-        self.buttons["Play"].setText("Play!")
-        self.buttons["Play"].setStyleSheet("background-color: green")
-        self.buttons["Play"].clicked.connect(self.playButtonPress)
+        self.pixmap = QPixmap('images/chess_picture.png')
+
+        self.label = QLabel(self)
+        self.label.setPixmap(self.pixmap)
+        self.label.setGeometry(1, 1, WIDTH - 2, HEIGHT - 251)
+        self.label.setScaledContents(True)
+
+        self.buttons["Play1v1"] = QPushButton(self)
+        self.buttons["Play1v1"].setGeometry(0, 0, 320, 100)
+        self.buttons["Play1v1"].move(15, 365)
+        self.buttons["Play1v1"].setText("Play 1v1")
+        self.buttons["Play1v1"].setStyleSheet("background-color: green")
+        self.buttons["Play1v1"].clicked.connect(self.play1v1ButtonPress)
+
+        self.buttons["PlayAI"] = QPushButton(self)
+        self.buttons["PlayAI"].setGeometry(0, 0, 330, 100)
+        self.buttons["PlayAI"].move(353, 365)
+        self.buttons["PlayAI"].setText("Play vs AI")
+        self.buttons["PlayAI"].setStyleSheet("background-color: green")
+        self.buttons["PlayAI"].clicked.connect(self.playVsAIButtonPress)
+
+        self.buttons["Settings"] = QPushButton(self)
+        self.buttons["Settings"].setGeometry(0, 0, 320, 100)
+        self.buttons["Settings"].move(15, 485)
+        self.buttons["Settings"].setText("Settings")
+        self.buttons["Settings"].setStyleSheet("background-color: brown")
+        self.buttons["Settings"].clicked.connect(self.settingsButtonPress)
 
         self.buttons["Credits"] = QPushButton(self)
-        self.buttons["Credits"].setGeometry(0, 0, 670, 100)
-        self.buttons["Credits"].move(15, 485)
+        self.buttons["Credits"].setGeometry(0, 0, 330, 100)
+        self.buttons["Credits"].move(353, 485)
         self.buttons["Credits"].setText("Credits")
         self.buttons["Credits"].setStyleSheet("background-color: blue")
         self.buttons["Credits"].clicked.connect(self.creditsButtonPress)
 
-    def playButtonPress(self):
+    def play1v1ButtonPress(self):
         self.hide()
-        result = Game()
-        if result["game finished"]:
-            if result["white victory"]:
-                self.new_window = WhiteVictoryWindow()
-            elif result["black victory"]:
-                self.new_window = BlackVictoryWindow()
-            else:
-                self.new_window = DrawWindow()
-            self.new_window.show()
-        else:
-            self.show()
+        Game(white_is_human=True, black_is_human=True)
+        self.show()
 
+    def playVsAIButtonPress(self):
+        self.hide()
+        human = randint(0, 1)
+        if human == 0:
+            Game(white_is_human=True, black_is_human=False)
+        else:
+            Game(white_is_human=False, black_is_human=True)
+        self.show()
+
+    def settingsButtonPress(self):
+        self.hide()
+        self.new_window = SettingsWindow()
     def creditsButtonPress(self):
         self.hide()
         self.new_window = CreditsWindow()
-
-    def closeEvent(self, event):
-        event.accept()
-        self.show()
-
-class GameOverWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.label = QLabel()
-        self.setFixedWidth(WIDTH)
-        self.setFixedHeight(HEIGHT)
-        self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
-        self.setWindowTitle("Game result")
-
-    def closeEvent(self, event):
-        event.accept()
-        self.new_window = MainMenu()
-        self.new_window.show()
-
-
-class DrawWindow(GameOverWindow):
-    def __init__(self):
-        super(DrawWindow, self).__init__()
-        self.label = QLabel('Draw!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 100, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
-
-
-class WhiteVictoryWindow(GameOverWindow):
-    def __init__(self):
-        super(WhiteVictoryWindow, self).__init__()
-        self.label = QLabel('White won!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 105, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
-
-
-class BlackVictoryWindow(GameOverWindow):
-    def __init__(self):
-        super(BlackVictoryWindow, self).__init__()
-        self.label = QLabel('Black won!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 100, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
 
 
 class SettingsWindow(QWidget):
@@ -116,6 +86,21 @@ class SettingsWindow(QWidget):
         self.setFixedHeight(HEIGHT)
         self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
         self.setWindowTitle("Settings")
+
+        self.title = QLabel('Settings', self)
+        self.title.setStyleSheet("color: black; font-weight: bold")
+        self.title.move(WIDTH // 2 - 75, 30)
+        self.title.setFixedSize(WIDTH, 100)
+        self.font_title = self.title.font()
+        self.font_title.setPointSize(32)
+        self.title.setFont(self.font_title)
+
+        self.show()
+
+    def closeEvent(self, event):
+        event.accept()
+        self.new_window = MainMenu()
+        self.new_window.show()
 
 
 class CreditsWindow(QWidget):
@@ -154,4 +139,3 @@ class CreditsWindow(QWidget):
         event.accept()
         self.new_window = MainMenu()
         self.new_window.show()
-
