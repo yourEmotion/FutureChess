@@ -39,7 +39,7 @@ def Game():
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-            # Если нажата кнопка мыши
+            # Нажата кнопка мыши
             elif e.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()
                 col = location[0] // SQ_SIZE
@@ -66,7 +66,7 @@ def Game():
                         playerClicks = [sqSelected]
 
 
-            #нажата клавиша на клавиатуре
+            # Нажата клавиша на клавиатуре
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_LCTRL:
                     gs.undoMove()
@@ -74,7 +74,7 @@ def Game():
         if move_is_made:
             valid_moves = gs.getValidMoves()
             move_is_made = False
-        drawGameState(screen, gs, sqSelected)
+        drawGameState(screen, gs, valid_moves, sqSelected)
         clock.tick(MAX_FPS)
         p.display.flip()
         if gs.checkMate:
@@ -90,11 +90,10 @@ def Game():
     return result
 
 
-def drawGameState(screen, gs, sqSelected):
+def drawGameState(screen, gs, validMoves, sqSelected):
     drawBoard(screen)
+    highlightSquares(screen, gs, validMoves, sqSelected)
     drawPieces(screen, gs.board)
-    if len(sqSelected) != 0:
-        drawSelectLine(screen, gs.board, sqSelected[0], sqSelected[1])
 
 
 def drawBoard(screen):
@@ -112,6 +111,16 @@ def drawPieces(screen, board):
             if piece != "--":
                 screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
-def drawSelectLine(screen, board, row, col):
-    p.draw.rect(screen, p.Color("green"), p.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE), 3)
-
+def highlightSquares(screen, gs, validMoves, sqSelected):
+    if sqSelected != ():
+        r, c = sqSelected
+        if gs.board[r][c][0] == ('w' if gs.whiteToMove else 'b'):
+            s = p.Surface((SQ_SIZE, SQ_SIZE))
+            s.set_alpha(100) # прозрачность (0, 255)
+            s.fill(p.Color('green'))
+            screen.blit(s, (c*SQ_SIZE, r*SQ_SIZE))
+            # p.draw.rect(screen, p.Color("green"), p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE), 2)
+            s.fill(p.Color('yellow'))
+            for move in validMoves:
+                if move.startRow == r and move.startCol == c:
+                    screen.blit(s, (SQ_SIZE*move.endCol, SQ_SIZE*move.endRow))
