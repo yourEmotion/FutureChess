@@ -39,7 +39,7 @@ def Game():
     playerClicks = []
     gameOver = False
     playerOne = True # True если играет человек
-    playerTwo = False # True если играет человек
+    playerTwo = True # True если играет человек
     while running:
         human_turn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
@@ -176,7 +176,7 @@ def highlightSquares(screen, gs, validMoves, sqSelected):
         screen.blit(l, (c * SQ_SIZE, r * SQ_SIZE))
 def drawText(screen, text):
     font = p.font.SysFont("Helvitca", 32, True, False)
-    textObject = font.render(text, 0, p.Color('Black'))
+    textObject = font.render(text, False, p.Color('Black'))
     textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH / 2 - textObject.get_width()/2,
                                                     HEIGHT/2 - textObject.get_height()/2)
     screen.blit(textObject, textLocation)
@@ -197,7 +197,11 @@ def animateMove(move, screen, board, clock):
         p.draw.rect(screen, color, endSquare)
 
         if move.pieceCaptured != "--":
+            if move.isEnpassantMove:
+                enPassantRow = move.endRow + 1 if move.pieceCaptured[0] == 'b' else move.endRow - 1
+                endSquare = p.Rect(move.endCol * SQ_SIZE, enPassantRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
             screen.blit(IMAGES[move.pieceCaptured], endSquare)
+
         screen.blit(IMAGES[move.pieceMoved], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)
