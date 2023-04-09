@@ -5,6 +5,7 @@
 import pygame as p
 import ChessEngine
 import AI
+from time import time
 
 
 WIDTH = HEIGHT = 512
@@ -115,9 +116,6 @@ def Game(white_is_human: bool, black_is_human: bool) -> None:
         clock.tick(MAX_FPS)
         p.display.flip()
     p.quit()
-
-
-
 
 
 def drawGameState(screen, gs, validMoves, sqSelected):
