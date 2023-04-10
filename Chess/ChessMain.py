@@ -104,10 +104,13 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
             valid_moves = gs.getValidMoves()
             move_is_made = False
             animate = False
+        if len(gs.moveLog) >= 10:
+            gs.move_repetition = gs.hasMoveRepetition()
         drawGameState(screen, gs, valid_moves, sqSelected, moveLogFont, board_color)
-        if gs.checkmate or gs.stalemate:
+        if gs.checkmate or gs.stalemate or gs.move_repetition:
             gameOver = True
-            drawText(screen, 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate')
+            drawText(screen, 'Draw by stalemate' if gs.stalemate else 'Draw by move repetition'
+                if gs.move_repetition else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate')
         clock.tick(MAX_FPS)
         p.display.flip()
     p.quit()
