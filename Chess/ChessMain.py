@@ -5,7 +5,6 @@
 import pygame as p
 import ChessEngine
 import AI
-from time import time
 
 
 WIDTH = HEIGHT = 512
@@ -20,7 +19,7 @@ def loadImages():
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
 
-def Game(white_is_human: bool, black_is_human: bool) -> None:
+def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -88,7 +87,7 @@ def Game(white_is_human: bool, black_is_human: bool) -> None:
                     move_is_made = False
                     gameOver = False
                     animate = False
-                if e.key == p.K_q: # quit button
+                if e.key == p.K_q:  # quit button
                     running = False
         # AI logic
         if not gameOver and not human_turn:
@@ -103,7 +102,7 @@ def Game(white_is_human: bool, black_is_human: bool) -> None:
             valid_moves = gs.getValidMoves()
             move_is_made = False
             animate = False
-        drawGameState(screen, gs, valid_moves, sqSelected)
+        drawGameState(screen, gs, valid_moves, sqSelected, board_color)
         if gs.checkmate:
             gameOver = True
             if gs.whiteToMove:
@@ -118,15 +117,15 @@ def Game(white_is_human: bool, black_is_human: bool) -> None:
     p.quit()
 
 
-def drawGameState(screen, gs, validMoves, sqSelected):
-    drawBoard(screen)
+def drawGameState(screen, gs, validMoves, sqSelected, board_color):
+    drawBoard(screen, board_color)
     highlightSquares(screen, gs, validMoves, sqSelected)
     drawPieces(screen, gs.board)
 
 
-def drawBoard(screen):
+def drawBoard(screen, board_colors):
     global colors
-    colors = [p.Color("white"), p.Color("grey")]
+    colors = [p.Color(color) for color in board_colors.split("-")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r + c) % 2)]
@@ -169,7 +168,7 @@ def drawText(screen, text):
                                                     HEIGHT/2 - textObject.get_height()/2)
     screen.blit(textObject, textLocation)
 
-def animateMove(move, screen, board, clock):
+def animateMove(move, screen, board, clock, board_colors):
     global colors
     dR = move.endRow - move.startRow
     dC = move.endCol - move.startCol
@@ -177,7 +176,7 @@ def animateMove(move, screen, board, clock):
     frameCount = (abs(dR) + abs(dC)) * framesPerSquare
     for frame in range(frameCount + 1):
         r, c = (move.startRow + dR*frame/frameCount, move.startCol + dC*frame/frameCount)
-        drawBoard(screen)
+        drawBoard(screen, board_colors)
         drawPieces(screen, board)
 
         color = colors[(move.endRow + move.endCol) % 2]
