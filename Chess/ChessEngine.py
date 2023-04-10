@@ -21,6 +21,7 @@ class GameState:
         self.blackKingLocation = (0, 4)
         self.checkmate = False
         self.stalemate = False
+        self.move_repetition = False
         self.enpassantPossible = ()
         self.enpassantPossibleLog = [self.enpassantPossible]
         self.currentCastlingRight = CastleRight(True, True, True, True)
@@ -134,6 +135,9 @@ class GameState:
                 elif move.startCol == 7:
                     self.currentCastlingRight.bks = False
 
+    def hasMoveRepetition(self):
+        return self.moveLog[-1] == self.moveLog[-5] == self.moveLog[-9] and\
+            self.moveLog[-2] == self.moveLog[-6] == self.moveLog[-10]
     def getValidMoves(self):
         tmp_castle_rights = CastleRight(self.currentCastlingRight.wks, self.currentCastlingRight.bks,
                                         self.currentCastlingRight.wqs, self.currentCastlingRight.bqs)
@@ -375,10 +379,6 @@ class Move():
 
         self.isCastlingMove = isCastlingMove
         self.isCapture = self.pieceCaptured != '--'
-
-    '''
-    Тут можно добавить нормальную шахматную нотацию
-    '''
 
     def getChessNotation(self):
         return self.getRankFile(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
