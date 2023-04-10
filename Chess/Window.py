@@ -36,16 +36,7 @@ class MainMenu(QWidget):
     def playButtonPress(self):
         self.hide()
         result = Game()
-        if result["game finished"]:
-            if result["white victory"]:
-                self.new_window = WhiteVictoryWindow()
-            elif result["black victory"]:
-                self.new_window = BlackVictoryWindow()
-            else:
-                self.new_window = DrawWindow()
-            self.new_window.show()
-        else:
-            self.show()
+        self.show()
 
     def creditsButtonPress(self):
         self.hide()
