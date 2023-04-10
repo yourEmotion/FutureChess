@@ -100,11 +100,11 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
 
         if move_is_made:
             if animate:
-                animateMove(gs.moveLog[-1], screen, gs.board, clock)
+                animateMove(gs.moveLog[-1], screen, gs.board, clock, board_color)
             valid_moves = gs.getValidMoves()
             move_is_made = False
             animate = False
-        drawGameState(screen, gs, valid_moves, sqSelected, moveLogFont)
+        drawGameState(screen, gs, valid_moves, sqSelected, moveLogFont, board_color)
         if gs.checkmate or gs.stalemate:
             gameOver = True
             drawText(screen, 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate')
