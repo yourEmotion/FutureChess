@@ -9,9 +9,7 @@ HEIGHT = 600
 WIDTH_INDENT = 500
 HEIGHT_INDENT = 300
 
-GAME_TIME = None
-ADD_TIME = None
-
+BOARD_COLOR = "white-gray"
 
 class MainMenu(QMainWindow):
     buttons = defaultdict()
@@ -61,7 +59,7 @@ class MainMenu(QMainWindow):
 
     def play1v1ButtonPress(self):
         self.hide()
-        Game(white_is_human=True, black_is_human=True)
+        Game(white_is_human=True, black_is_human=True, board_color=BOARD_COLOR)
         self.show()
 
     def playVsAIButtonPress(self):
@@ -96,40 +94,31 @@ class ChoiceColorWindow(QWidget):
         self.font_title.setPointSize(32)
         self.title.setFont(self.font_title)
 
-        color = "white"
-        self.buttons[color] = QPushButton(self)
-        self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
-        self.buttons[color].setGeometry(0, 0, 280, 200)
-        self.buttons[color].move(35, 250)
-        self.buttons[color].setText(color)
-        self.font = self.buttons[color].font()
-        self.font.setPointSize(32)
-        self.buttons[color].setFont(self.font)
-        self.buttons[color].clicked.connect(self.whiteStartButtonPress)
+        for index, color in enumerate(("white", "black")):
+            self.buttons[color] = QPushButton(self)
+            self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
+            self.buttons[color].setGeometry(0, 0, 280, 200)
+            self.buttons[color].move(35 + index * 350, 250)
+            self.buttons[color].setText(color)
+            self.font = self.buttons[color].font()
+            self.font.setPointSize(32)
+            self.buttons[color].setFont(self.font)
 
-        color = "black"
-        self.buttons[color] = QPushButton(self)
-        self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
-        self.buttons[color].setGeometry(0, 0, 280, 200)
-        self.buttons[color].move(385, 250)
-        self.buttons[color].setText(color)
-        self.font = self.buttons[color].font()
-        self.font.setPointSize(32)
-        self.buttons[color].setFont(self.font)
-        self.buttons[color].clicked.connect(self.blackStartButtonPress)
+        self.buttons["white"].clicked.connect(self.whiteStartButtonPress)
+        self.buttons["black"].clicked.connect(self.blackStartButtonPress)
 
         self.show()
 
     def whiteStartButtonPress(self):
         self.hide()
-        Game(white_is_human=True, black_is_human=False)
+        Game(white_is_human=True, black_is_human=False, board_color=BOARD_COLOR)
         self.new_window = MainMenu()
         self.new_window.show()
 
 
     def blackStartButtonPress(self):
         self.hide()
-        Game(white_is_human=False, black_is_human=True)
+        Game(white_is_human=False, black_is_human=True, board_color=BOARD_COLOR)
         self.new_window = MainMenu()
         self.new_window.show()
 
@@ -166,29 +155,35 @@ class SettingsWindow(QWidget):
         self.board_color.setFont(self.font_board_color)
 
         self.board_colors = ("white-gray", "white-green", "white-blue", "white-brown")
-        self.board_color_set = "white-gray"
         for index, color in enumerate(self.board_colors):
             self.buttons[color] = QRadioButton(self)
             self.buttons[color].setGeometry(0, 0, 300, 50)
             self.buttons[color].move(25 + index * 180, 175)
             self.buttons[color].setText(color)
-            self.buttons[color].clicked.connect(self.choiceColorButtonPress)
+        self.buttons[BOARD_COLOR].setChecked(True)
 
-        '''self.figures_colors = ("white-black", "red-black", "yellow-red", "red-white")
-        self.board_color_set = "white-black"
-        for index, color in enumerate(self.board_colors):
-            self.buttons[color] = QRadioButton(self)
-            self.buttons[color].setGeometry(0, 0, 300, 50)
-            self.buttons[color].move(25 + index * 180, 175)
-            self.buttons[color].setText(color)
-            self.buttons[color].clicked.connect(self.choiceColorButtonPress)'''
-
-
+        self.buttons["white-gray"].toggled.connect(self.white_grayButtonPress)
+        self.buttons["white-green"].toggled.connect(self.white_greenButtonPress)
+        self.buttons["white-blue"].toggled.connect(self.white_blueButtonPress)
+        self.buttons["white-brown"].toggled.connect(self.white_brownButtonPress)
 
         self.show()
 
-    def choiceColorButtonPress(self):
-        pass
+    def white_grayButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-gray"
+
+    def white_greenButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-green"
+
+    def white_blueButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-blue"
+
+    def white_brownButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-brown"
 
     def closeEvent(self, event):
         event.accept()
