@@ -7,9 +7,11 @@ import ChessEngine
 import AI
 
 
-WIDTH = HEIGHT = 512
+BOARD_WIDTH = BOARD_HEIGHT = 512
+MOVE_LOG_PANEL_WIDTH = 250
+MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
 DIMENSION = 8
-SQ_SIZE = HEIGHT // DIMENSION
+SQ_SIZE = BOARD_HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 
@@ -18,12 +20,12 @@ def loadImages():
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
-
 def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
     p.init()
-    screen = p.display.set_mode((WIDTH, HEIGHT))
+    screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
+    moveLogFont = p.font.SysFont("Arial", 16, False, False)
     gs = ChessEngine.GameState()
     valid_moves = gs.getValidMoves()
     move_is_made = False
@@ -44,7 +46,7 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
                     location = p.mouse.get_pos()
                     col = location[0] // SQ_SIZE
                     row = location[1] // SQ_SIZE
-                    if sqSelected == (row, col) or (sqSelected == () and gs.board[row][col] == "--"):
+                    if sqSelected == (row, col) or (sqSelected == () and gs.board[row][col] == "--") or col >= 8:
                         sqSelected = ()
                         playerClicks = []
                     else:
@@ -102,25 +104,19 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
             valid_moves = gs.getValidMoves()
             move_is_made = False
             animate = False
-        drawGameState(screen, gs, valid_moves, sqSelected, board_color)
-        if gs.checkmate:
+        drawGameState(screen, gs, valid_moves, sqSelected, moveLogFont)
+        if gs.checkmate or gs.stalemate:
             gameOver = True
-            if gs.whiteToMove:
-                drawText(screen, 'Black wins by checkmate')
-            else:
-                drawText(screen, 'White wins by checkmate')
-        elif gs.stalemate:
-            gameOver = True
-            drawText(screen, 'Stalemate')
+            drawText(screen, 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate')
         clock.tick(MAX_FPS)
         p.display.flip()
     p.quit()
 
-
-def drawGameState(screen, gs, validMoves, sqSelected, board_color):
+def drawGameState(screen, gs, validMoves, sqSelected, moveLogFont, board_color):
     drawBoard(screen, board_color)
     highlightSquares(screen, gs, validMoves, sqSelected)
     drawPieces(screen, gs.board)
+    drawMoveLog(screen, gs, moveLogFont)
 
 
 def drawBoard(screen, board_colors):
@@ -130,14 +126,6 @@ def drawBoard(screen, board_colors):
         for c in range(DIMENSION):
             color = colors[((r + c) % 2)]
             p.draw.rect(screen, color, p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
-
-def drawPieces(screen, board):
-    for r in range(DIMENSION):
-        for c in range(DIMENSION):
-            piece = board[r][c]
-            if piece != "--":
-                screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 def highlightSquares(screen, gs, validMoves, sqSelected):
     if sqSelected != ():
@@ -161,11 +149,44 @@ def highlightSquares(screen, gs, validMoves, sqSelected):
         screen.blit(l, (c * SQ_SIZE, r * SQ_SIZE))
         r, c = last_move.endRow, last_move.endCol
         screen.blit(l, (c * SQ_SIZE, r * SQ_SIZE))
+
+def drawPieces(screen, board):
+    for r in range(DIMENSION):
+        for c in range(DIMENSION):
+            piece = board[r][c]
+            if piece != "--":
+                screen.blit(IMAGES[piece], p.Rect(c * SQ_SIZE, r * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+def drawMoveLog(screen, gs, font):
+    moveLogRect = p.Rect(BOARD_WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
+    p.draw.rect(screen, p.Color("grey"), moveLogRect)
+    moveLog = gs.moveLog
+    moveTexts = []
+    for i in range(0, len(moveLog), 2):
+        moveString = str(i//2 + 1) + ". " + str(moveLog[i]) + " "
+        if i + 1 < len(moveLog):
+            moveString += str(moveLog[i+1]) + "  "
+        moveTexts.append(moveString)
+    movesPerRow = 3
+    padding = 5
+    lineSpacing = 2
+    textY = padding
+    for i in range(0, len(moveTexts), movesPerRow):
+        text = ""
+        for j in range(movesPerRow):
+            if i + j < len(moveTexts):
+                text += moveTexts[i+j]
+        text += "  "
+        textObject = font.render(text, False, p.Color('Black'))
+        textLocation = moveLogRect.move(padding, textY)
+        screen.blit(textObject, textLocation)
+        textY += textObject.get_height() + lineSpacing
+
 def drawText(screen, text):
     font = p.font.SysFont("Helvitca", 32, True, False)
-    textObject = font.render(text, 0, p.Color('Black'))
-    textLocation = p.Rect(0, 0, WIDTH, HEIGHT).move(WIDTH / 2 - textObject.get_width()/2,
-                                                    HEIGHT/2 - textObject.get_height()/2)
+    textObject = font.render(text, False, p.Color('Black'))
+    textLocation = p.Rect(0, 0, BOARD_WIDTH, BOARD_HEIGHT).move(BOARD_WIDTH / 2 - textObject.get_width() / 2,
+                                                                BOARD_HEIGHT / 2 - textObject.get_height() / 2)
     screen.blit(textObject, textLocation)
 
 def animateMove(move, screen, board, clock, board_colors):
@@ -184,7 +205,11 @@ def animateMove(move, screen, board, clock, board_colors):
         p.draw.rect(screen, color, endSquare)
 
         if move.pieceCaptured != "--":
+            if move.isEnpassantMove:
+                enPassantRow = move.endRow + 1 if move.pieceCaptured[0] == 'b' else move.endRow - 1
+                endSquare = p.Rect(move.endCol * SQ_SIZE, enPassantRow * SQ_SIZE, SQ_SIZE, SQ_SIZE)
             screen.blit(IMAGES[move.pieceCaptured], endSquare)
+
         screen.blit(IMAGES[move.pieceMoved], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)

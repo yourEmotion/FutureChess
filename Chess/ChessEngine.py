@@ -22,6 +22,7 @@ class GameState:
         self.checkmate = False
         self.stalemate = False
         self.enpassantPossible = ()
+        self.enpassantPossibleLog = [self.enpassantPossible]
         self.currentCastlingRight = CastleRight(True, True, True, True)
         self.castleRightsLog = [CastleRight(self.currentCastlingRight.wks, self.currentCastlingRight.bks,
                                             self.currentCastlingRight.wqs, self.currentCastlingRight.bqs)]
@@ -59,6 +60,7 @@ class GameState:
                 self.board[move.endRow][move.endCol+1] = self.board[move.endRow][move.endCol-2]
                 self.board[move.endRow][move.endCol-2] = "--"
 
+        self.enpassantPossibleLog.append(self.enpassantPossible)
         # Рокировка
         self.updateCastleRights(move)
         self.castleRightsLog.append(CastleRight(self.currentCastlingRight.wks, self.currentCastlingRight.bks,
@@ -80,9 +82,8 @@ class GameState:
             if move.isEnpassantMove:
                 self.board[move.endRow][move.endCol] = "--"
                 self.board[move.startRow][move.endCol] = move.pieceCaptured
-                self.enpassantPossible = (move.endRow, move.endCol)
-            if move.pieceMoved[1] == 'p' and abs(move.startRow - move.endRow) == 2:
-                self.enpassantPossible = ()
+            self.enpassantPossibleLog.pop()
+            self.enpassantPossible = self.enpassantPossibleLog[-1]
 
             # undo castling
             self.castleRightsLog.pop()
@@ -97,6 +98,8 @@ class GameState:
                 else:
                     self.board[move.endRow][move.endCol - 2] = self.board[move.endRow][move.endCol + 1]
                     self.board[move.endRow][move.endCol + 1] = "--"
+            self.checkmate = False
+            self.stalemate = False
 
     def updateCastleRights(self, move):
         if move.pieceMoved == 'wK':
@@ -112,6 +115,19 @@ class GameState:
                 elif move.startCol == 7:
                     self.currentCastlingRight.wks = False
         elif move.pieceMoved == 'bR':
+            if move.startRow == 0:
+                if move.startCol == 0:
+                    self.currentCastlingRight.bqs = False
+                elif move.startCol == 7:
+                    self.currentCastlingRight.bks = False
+
+        if move.pieceCaptured == 'wR':
+            if move.startRow == 7:
+                if move.startCol == 0:
+                    self.currentCastlingRight.wqs = False
+                elif move.startCol == 7:
+                    self.currentCastlingRight.wks = False
+        elif move.pieceCaptured == 'bR':
             if move.startRow == 0:
                 if move.startCol == 0:
                     self.currentCastlingRight.bqs = False
@@ -358,6 +374,7 @@ class Move():
                 self.pieceMoved == 'bp' and self.endRow == 7)
 
         self.isCastlingMove = isCastlingMove
+        self.isCapture = self.pieceCaptured != '--'
 
     '''
     Тут можно добавить нормальную шахматную нотацию
@@ -373,3 +390,26 @@ class Move():
         if isinstance(other, Move):
             return self.moveID == other.moveID
         return False
+
+    def __str__(self):
+        #castle move
+        if self.isCastlingMove:
+            return "O-O" if self.endCol == 6 else "O-O-O"
+
+        endSquare = self.getRankFile(self.endRow, self.endCol)
+
+        if self.pieceMoved[1] == 'p':
+            if self.isCapture:
+                return self.colsToFiles[self.startCol] + "x" + endSquare
+            else:
+                return endSquare
+
+            # add pawn promotions
+
+        # add another + checks and checkmates
+
+        #piece moves
+        moveString = self.pieceMoved[1]
+        if self.isCapture:
+            moveString += 'x'
+        return moveString + endSquare
