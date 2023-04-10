@@ -5,7 +5,6 @@
 import pygame as p
 import ChessEngine
 import AI
-from collections import defaultdict
 
 
 BOARD_WIDTH = BOARD_HEIGHT = 512
@@ -21,8 +20,7 @@ def loadImages():
     for piece in pieces:
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQ_SIZE, SQ_SIZE))
 
-
-def Game():
+def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
     p.init()
     screen = p.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
     clock = p.time.Clock()
@@ -37,10 +35,8 @@ def Game():
     sqSelected = ()
     playerClicks = []
     gameOver = False
-    playerOne = True # True если играет человек
-    playerTwo = True # True если играет человек
     while running:
-        human_turn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
+        human_turn = (gs.whiteToMove and white_is_human) or (not gs.whiteToMove and black_is_human)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -75,7 +71,7 @@ def Game():
             # Нажата клавиша на клавиатуре
             elif e.type == p.KEYDOWN:
                 if e.key == p.K_LCTRL:
-                    if playerOne and playerTwo:
+                    if white_is_human and black_is_human:
                         gs.undoMove()
                     elif human_turn:
                         gs.undoMove()
@@ -93,7 +89,7 @@ def Game():
                     move_is_made = False
                     gameOver = False
                     animate = False
-                if e.key == p.K_q: # quit button
+                if e.key == p.K_q:  # quit button
                     running = False
         # AI logic
         if not gameOver and not human_turn:
@@ -112,22 +108,20 @@ def Game():
         if gs.checkmate or gs.stalemate:
             gameOver = True
             drawText(screen, 'Stalemate' if gs.stalemate else 'Black wins by checkmate' if gs.whiteToMove else 'White wins by checkmate')
-
-
         clock.tick(MAX_FPS)
         p.display.flip()
     p.quit()
 
-def drawGameState(screen, gs, validMoves, sqSelected, moveLogFont):
-    drawBoard(screen)
+def drawGameState(screen, gs, validMoves, sqSelected, moveLogFont, board_color):
+    drawBoard(screen, board_color)
     highlightSquares(screen, gs, validMoves, sqSelected)
     drawPieces(screen, gs.board)
     drawMoveLog(screen, gs, moveLogFont)
 
 
-def drawBoard(screen):
+def drawBoard(screen, board_colors):
     global colors
-    colors = [p.Color("white"), p.Color("grey")]
+    colors = [p.Color(color) for color in board_colors.split("-")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r + c) % 2)]
@@ -195,7 +189,7 @@ def drawText(screen, text):
                                                                 BOARD_HEIGHT / 2 - textObject.get_height() / 2)
     screen.blit(textObject, textLocation)
 
-def animateMove(move, screen, board, clock):
+def animateMove(move, screen, board, clock, board_colors):
     global colors
     dR = move.endRow - move.startRow
     dC = move.endCol - move.startCol
@@ -203,7 +197,7 @@ def animateMove(move, screen, board, clock):
     frameCount = (abs(dR) + abs(dC)) * framesPerSquare
     for frame in range(frameCount + 1):
         r, c = (move.startRow + dR*frame/frameCount, move.startCol + dC*frame/frameCount)
-        drawBoard(screen)
+        drawBoard(screen, board_colors)
         drawPieces(screen, board)
 
         color = colors[(move.endRow + move.endCol) % 2]
@@ -219,5 +213,3 @@ def animateMove(move, screen, board, clock):
         screen.blit(IMAGES[move.pieceMoved], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)
-
-

@@ -1,3 +1,4 @@
-import random
+from random import randint
+
 def findRandomMove(validMoves):
-    return validMoves[random.randint(0, len(validMoves)-1)]
+    return validMoves[randint(0, len(validMoves)-1)]

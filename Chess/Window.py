@@ -1,5 +1,6 @@
 from collections import defaultdict
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QMainWindow, QRadioButton
 from ChessMain import Game
 
 
@@ -8,8 +9,9 @@ HEIGHT = 600
 WIDTH_INDENT = 500
 HEIGHT_INDENT = 300
 
+BOARD_COLOR = "white-gray"
 
-class MainMenu(QWidget):
+class MainMenu(QMainWindow):
     buttons = defaultdict()
 
     def __init__(self):
@@ -18,42 +20,107 @@ class MainMenu(QWidget):
         self.setFixedHeight(HEIGHT)
         self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
         self.setWindowTitle("Chess")
+        self.setStyleSheet("background-color: white")
 
-        self.buttons["Play"] = QPushButton(self)
-        self.buttons["Play"].setGeometry(0, 0, 670, 100)
-        self.buttons["Play"].move(15, 355)
-        self.buttons["Play"].setText("Play!")
-        self.buttons["Play"].setStyleSheet("background-color: green")
-        self.buttons["Play"].clicked.connect(self.playButtonPress)
+        self.pixmap = QPixmap('images/chess_picture.png')
+
+        self.label = QLabel(self)
+        self.label.setPixmap(self.pixmap)
+        self.label.setGeometry(1, 1, WIDTH - 2, HEIGHT - 251)
+        self.label.setScaledContents(True)
+
+        self.buttons["Play1v1"] = QPushButton(self)
+        self.buttons["Play1v1"].setGeometry(0, 0, 320, 100)
+        self.buttons["Play1v1"].move(15, 365)
+        self.buttons["Play1v1"].setText("Play 1v1")
+        self.buttons["Play1v1"].setStyleSheet("background-color: green")
+        self.buttons["Play1v1"].clicked.connect(self.play1v1ButtonPress)
+
+        self.buttons["PlayAI"] = QPushButton(self)
+        self.buttons["PlayAI"].setGeometry(0, 0, 330, 100)
+        self.buttons["PlayAI"].move(353, 365)
+        self.buttons["PlayAI"].setText("Play vs AI")
+        self.buttons["PlayAI"].setStyleSheet("background-color: green")
+        self.buttons["PlayAI"].clicked.connect(self.playVsAIButtonPress)
+
+        self.buttons["Settings"] = QPushButton(self)
+        self.buttons["Settings"].setGeometry(0, 0, 320, 100)
+        self.buttons["Settings"].move(15, 485)
+        self.buttons["Settings"].setText("Settings")
+        self.buttons["Settings"].setStyleSheet("background-color: brown")
+        self.buttons["Settings"].clicked.connect(self.settingsButtonPress)
 
         self.buttons["Credits"] = QPushButton(self)
-        self.buttons["Credits"].setGeometry(0, 0, 670, 100)
-        self.buttons["Credits"].move(15, 485)
+        self.buttons["Credits"].setGeometry(0, 0, 330, 100)
+        self.buttons["Credits"].move(353, 485)
         self.buttons["Credits"].setText("Credits")
         self.buttons["Credits"].setStyleSheet("background-color: blue")
         self.buttons["Credits"].clicked.connect(self.creditsButtonPress)
 
-    def playButtonPress(self):
+    def play1v1ButtonPress(self):
         self.hide()
-        result = Game()
+        Game(white_is_human=True, black_is_human=True, board_color=BOARD_COLOR)
         self.show()
+
+    def playVsAIButtonPress(self):
+        self.hide()
+        self.new_window = ChoiceColorWindow()
+
+    def settingsButtonPress(self):
+        self.hide()
+        self.new_window = SettingsWindow()
 
     def creditsButtonPress(self):
         self.hide()
         self.new_window = CreditsWindow()
 
-    def closeEvent(self, event):
-        event.accept()
-        self.show()
 
-class GameOverWindow(QWidget):
+class ChoiceColorWindow(QWidget):
+    white_chosen = None
+    buttons = defaultdict()
+
     def __init__(self):
         super().__init__()
-        self.label = QLabel()
         self.setFixedWidth(WIDTH)
         self.setFixedHeight(HEIGHT)
         self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
-        self.setWindowTitle("Game result")
+        self.setWindowTitle("Color choice")
+
+        self.title = QLabel('Choose the color', self)
+        self.title.setStyleSheet("color: black; font-weight: bold")
+        self.title.move(WIDTH // 2 - 160, 30)
+        self.title.setFixedSize(WIDTH, 100)
+        self.font_title = self.title.font()
+        self.font_title.setPointSize(32)
+        self.title.setFont(self.font_title)
+
+        for index, color in enumerate(("white", "black")):
+            self.buttons[color] = QPushButton(self)
+            self.buttons[color].setStyleSheet("background-color: green; font-weight: bold; color: " + color)
+            self.buttons[color].setGeometry(0, 0, 280, 200)
+            self.buttons[color].move(35 + index * 350, 250)
+            self.buttons[color].setText(color)
+            self.font = self.buttons[color].font()
+            self.font.setPointSize(32)
+            self.buttons[color].setFont(self.font)
+
+        self.buttons["white"].clicked.connect(self.whiteStartButtonPress)
+        self.buttons["black"].clicked.connect(self.blackStartButtonPress)
+
+        self.show()
+
+    def whiteStartButtonPress(self):
+        self.hide()
+        Game(white_is_human=True, black_is_human=False, board_color=BOARD_COLOR)
+        self.new_window = MainMenu()
+        self.new_window.show()
+
+
+    def blackStartButtonPress(self):
+        self.hide()
+        Game(white_is_human=False, black_is_human=True, board_color=BOARD_COLOR)
+        self.new_window = MainMenu()
+        self.new_window.show()
 
     def closeEvent(self, event):
         event.accept()
@@ -61,52 +128,67 @@ class GameOverWindow(QWidget):
         self.new_window.show()
 
 
-class DrawWindow(GameOverWindow):
-    def __init__(self):
-        super(DrawWindow, self).__init__()
-        self.label = QLabel('Draw!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 100, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
-
-
-class WhiteVictoryWindow(GameOverWindow):
-    def __init__(self):
-        super(WhiteVictoryWindow, self).__init__()
-        self.label = QLabel('White won!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 105, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
-
-
-class BlackVictoryWindow(GameOverWindow):
-    def __init__(self):
-        super(BlackVictoryWindow, self).__init__()
-        self.label = QLabel('Black won!', self)
-        self.label.setStyleSheet("color: red")
-        self.label.move(WIDTH // 2 - 100, 100)
-        self.label.setFixedSize(400, 400)
-        self.font = self.label.font()
-        self.font.setPointSize(32)
-        self.label.setFont(self.font)
-        self.show()
-
-
 class SettingsWindow(QWidget):
+    buttons = defaultdict()
+
     def __init__(self):
         super().__init__()
         self.setFixedWidth(WIDTH)
         self.setFixedHeight(HEIGHT)
         self.setGeometry(WIDTH_INDENT, HEIGHT_INDENT, WIDTH, HEIGHT)
         self.setWindowTitle("Settings")
+
+        self.title = QLabel('Settings', self)
+        self.title.setStyleSheet("color: black; font-weight: bold")
+        self.title.move(WIDTH // 2 - 75, 30)
+        self.title.setFixedSize(WIDTH, 100)
+        self.font_title = self.title.font()
+        self.font_title.setPointSize(32)
+        self.title.setFont(self.font_title)
+
+        self.board_color = QLabel('Choose board color:', self)
+        self.board_color.setStyleSheet("color: black; font-weight: bold")
+        self.board_color.move(WIDTH // 2 - 90, 100)
+        self.board_color.setFixedSize(WIDTH, 100)
+        self.font_board_color = self.board_color.font()
+        self.font_board_color.setPointSize(16)
+        self.board_color.setFont(self.font_board_color)
+
+        self.board_colors = ("white-gray", "white-green", "white-blue", "white-brown")
+        for index, color in enumerate(self.board_colors):
+            self.buttons[color] = QRadioButton(self)
+            self.buttons[color].setGeometry(0, 0, 300, 50)
+            self.buttons[color].move(25 + index * 180, 175)
+            self.buttons[color].setText(color)
+        self.buttons[BOARD_COLOR].setChecked(True)
+
+        self.buttons["white-gray"].toggled.connect(self.white_grayButtonPress)
+        self.buttons["white-green"].toggled.connect(self.white_greenButtonPress)
+        self.buttons["white-blue"].toggled.connect(self.white_blueButtonPress)
+        self.buttons["white-brown"].toggled.connect(self.white_brownButtonPress)
+
+        self.show()
+
+    def white_grayButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-gray"
+
+    def white_greenButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-green"
+
+    def white_blueButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-blue"
+
+    def white_brownButtonPress(self):
+        global BOARD_COLOR
+        BOARD_COLOR = "white-brown"
+
+    def closeEvent(self, event):
+        event.accept()
+        self.new_window = MainMenu()
+        self.new_window.show()
 
 
 class CreditsWindow(QWidget):
@@ -145,4 +227,3 @@ class CreditsWindow(QWidget):
         event.accept()
         self.new_window = MainMenu()
         self.new_window.show()
-
