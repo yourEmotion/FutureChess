@@ -374,6 +374,7 @@ class Move():
                 self.pieceMoved == 'bp' and self.endRow == 7)
 
         self.isCastlingMove = isCastlingMove
+        self.isCapture = self.pieceCaptured != '--'
 
     '''
     Тут можно добавить нормальную шахматную нотацию
@@ -389,3 +390,26 @@ class Move():
         if isinstance(other, Move):
             return self.moveID == other.moveID
         return False
+
+    def __str__(self):
+        #castle move
+        if self.isCastlingMove:
+            return "O-O" if self.endCol == 6 else "O-O-O"
+
+        endSquare = self.getRankFile(self.endRow, self.endCol)
+
+        if self.pieceMoved[1] == 'p':
+            if self.isCapture:
+                return self.colsToFiles[self.startCol] + "x" + endSquare
+            else:
+                return endSquare
+
+            # add pawn promotions
+
+        # add another + checks and checkmates
+
+        #piece moves
+        moveString = self.pieceMoved[1]
+        if self.isCapture:
+            moveString += 'x'
+        return moveString + endSquare
