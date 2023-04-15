@@ -1,3 +1,4 @@
+import ChessEngine, ChessMain, AI
 from PyQt5.QtWidgets import QApplication
 import sys
 from Window import MainMenu

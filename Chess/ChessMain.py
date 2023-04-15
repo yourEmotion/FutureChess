@@ -30,7 +30,7 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
     valid_moves = gs.getValidMoves()
     move_is_made = False
     loadImages()
-    animate = False
+    animate = True
     running = True
     sqSelected = ()
     playerClicks = []
@@ -46,7 +46,7 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
                     location = p.mouse.get_pos()
                     col = location[0] // SQ_SIZE
                     row = location[1] // SQ_SIZE
-                    if sqSelected == (row, col) or (sqSelected == () and gs.board[row][col] == "--") or col >= 8:
+                    if col >= 8 or sqSelected == (row, col) or (sqSelected == () and gs.board[row][col] == "--"):
                         sqSelected = ()
                         playerClicks = []
                     else:
@@ -89,6 +89,7 @@ def Game(white_is_human: bool, black_is_human: bool, board_color: str) -> None:
                     move_is_made = False
                     gameOver = False
                     animate = False
+                    human_turn = (gs.whiteToMove and white_is_human) or (not gs.whiteToMove and black_is_human)
                 if e.key == p.K_q:  # quit button
                     running = False
         # AI logic
