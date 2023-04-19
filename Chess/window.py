@@ -1,8 +1,9 @@
 from collections import defaultdict
+
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QMainWindow, QRadioButton
-from ChessMain import Game
 
+from game_runner import game
 
 WIDTH = 700
 HEIGHT = 600
@@ -10,6 +11,7 @@ WIDTH_INDENT = 500
 HEIGHT_INDENT = 300
 
 BOARD_COLOR = "white-gray"
+
 
 class MainMenu(QMainWindow):
     buttons = defaultdict()
@@ -34,43 +36,43 @@ class MainMenu(QMainWindow):
         self.buttons["Play1v1"].move(15, 365)
         self.buttons["Play1v1"].setText("Play 1v1")
         self.buttons["Play1v1"].setStyleSheet("background-color: green")
-        self.buttons["Play1v1"].clicked.connect(self.play1v1ButtonPress)
+        self.buttons["Play1v1"].clicked.connect(self.play1v1_button_press)
 
         self.buttons["PlayAI"] = QPushButton(self)
         self.buttons["PlayAI"].setGeometry(0, 0, 330, 100)
         self.buttons["PlayAI"].move(353, 365)
         self.buttons["PlayAI"].setText("Play vs AI")
         self.buttons["PlayAI"].setStyleSheet("background-color: green")
-        self.buttons["PlayAI"].clicked.connect(self.playVsAIButtonPress)
+        self.buttons["PlayAI"].clicked.connect(self.play_vs_ai_button_press)
 
         self.buttons["Settings"] = QPushButton(self)
         self.buttons["Settings"].setGeometry(0, 0, 320, 100)
         self.buttons["Settings"].move(15, 485)
         self.buttons["Settings"].setText("Settings")
         self.buttons["Settings"].setStyleSheet("background-color: brown")
-        self.buttons["Settings"].clicked.connect(self.settingsButtonPress)
+        self.buttons["Settings"].clicked.connect(self.settings_button_press)
 
         self.buttons["Credits"] = QPushButton(self)
         self.buttons["Credits"].setGeometry(0, 0, 330, 100)
         self.buttons["Credits"].move(353, 485)
         self.buttons["Credits"].setText("Credits")
         self.buttons["Credits"].setStyleSheet("background-color: blue")
-        self.buttons["Credits"].clicked.connect(self.creditsButtonPress)
+        self.buttons["Credits"].clicked.connect(self.credits_button_press)
 
-    def play1v1ButtonPress(self):
+    def play1v1_button_press(self):
         self.hide()
-        Game(white_is_human=True, black_is_human=True, board_color=BOARD_COLOR)
+        game(white_is_human=True, black_is_human=True, board_color=BOARD_COLOR)
         self.show()
 
-    def playVsAIButtonPress(self):
+    def play_vs_ai_button_press(self):
         self.hide()
         self.new_window = ChoiceColorWindow()
 
-    def settingsButtonPress(self):
+    def settings_button_press(self):
         self.hide()
         self.new_window = SettingsWindow()
 
-    def creditsButtonPress(self):
+    def credits_button_press(self):
         self.hide()
         self.new_window = CreditsWindow()
 
@@ -104,21 +106,20 @@ class ChoiceColorWindow(QWidget):
             self.font.setPointSize(32)
             self.buttons[color].setFont(self.font)
 
-        self.buttons["white"].clicked.connect(self.whiteStartButtonPress)
-        self.buttons["black"].clicked.connect(self.blackStartButtonPress)
+        self.buttons["white"].clicked.connect(self.white_start_button_press)
+        self.buttons["black"].clicked.connect(self.black_start_button_press)
 
         self.show()
 
-    def whiteStartButtonPress(self):
+    def white_start_button_press(self):
         self.hide()
-        Game(white_is_human=True, black_is_human=False, board_color=BOARD_COLOR)
+        game(white_is_human=True, black_is_human=False, board_color=BOARD_COLOR)
         self.new_window = MainMenu()
         self.new_window.show()
 
-
-    def blackStartButtonPress(self):
+    def black_start_button_press(self):
         self.hide()
-        Game(white_is_human=False, black_is_human=True, board_color=BOARD_COLOR)
+        game(white_is_human=False, black_is_human=True, board_color=BOARD_COLOR)
         self.new_window = MainMenu()
         self.new_window.show()
 
@@ -162,26 +163,26 @@ class SettingsWindow(QWidget):
             self.buttons[color].setText(color)
         self.buttons[BOARD_COLOR].setChecked(True)
 
-        self.buttons["white-gray"].toggled.connect(self.white_grayButtonPress)
-        self.buttons["white-green"].toggled.connect(self.white_greenButtonPress)
-        self.buttons["white-blue"].toggled.connect(self.white_blueButtonPress)
-        self.buttons["white-brown"].toggled.connect(self.white_brownButtonPress)
+        self.buttons["white-gray"].toggled.connect(self.white_gray_button_press)
+        self.buttons["white-green"].toggled.connect(self.white_green_button_press)
+        self.buttons["white-blue"].toggled.connect(self.white_blue_button_press)
+        self.buttons["white-brown"].toggled.connect(self.white_brown_button_press)
 
         self.show()
 
-    def white_grayButtonPress(self):
+    def white_gray_button_press(self):
         global BOARD_COLOR
         BOARD_COLOR = "white-gray"
 
-    def white_greenButtonPress(self):
+    def white_green_button_press(self):
         global BOARD_COLOR
         BOARD_COLOR = "white-green"
 
-    def white_blueButtonPress(self):
+    def white_blue_button_press(self):
         global BOARD_COLOR
         BOARD_COLOR = "white-blue"
 
-    def white_brownButtonPress(self):
+    def white_brown_button_press(self):
         global BOARD_COLOR
         BOARD_COLOR = "white-brown"
 
