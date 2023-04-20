@@ -23,9 +23,18 @@ class GameState:
         self.stalemate = False
         self.enpassant_possible = ()
         self.enpassant_possible_log = [self.enpassant_possible]
-        self.current_castling_right = CastleRight(True, True, True, True)
-        self.castle_rights_log = [CastleRight(self.current_castling_right.wks, self.current_castling_right.bks,
-                                              self.current_castling_right.wqs, self.current_castling_right.bqs)]
+        self.current_castling_right = GameState.CastleRight(True, True, True, True)
+        self.castle_rights_log = [GameState.CastleRight(self.current_castling_right.wks,
+                                                        self.current_castling_right.bks,
+                                                        self.current_castling_right.wqs,
+                                                        self.current_castling_right.bqs)]
+
+    class CastleRight:
+        def __init__(self, wks, bks, wqs, bqs):
+            self.wks = wks
+            self.bks = bks
+            self.wqs = wqs
+            self.bqs = bqs
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
@@ -40,10 +49,6 @@ class GameState:
 
         if move.is_pawn_promotion:
             self.board[move.end_row][move.end_col] = move.piece_moved[0] + 'Q'
-            '''
-            Надо бы здесь сделать всплывающее окно или типо того
-            для выбора promotion, пока сразу в королеву 
-            '''
         if move.is_enpassant_move:
             self.board[move.start_row][move.end_col] = "--"
 
@@ -63,8 +68,10 @@ class GameState:
         self.enpassant_possible_log.append(self.enpassant_possible)
         # Рокировка
         self.update_castle_rights(move)
-        self.castle_rights_log.append(CastleRight(self.current_castling_right.wks, self.current_castling_right.bks,
-                                                  self.current_castling_right.wqs, self.current_castling_right.bqs))
+        self.castle_rights_log.append(GameState.CastleRight(self.current_castling_right.wks,
+                                                            self.current_castling_right.bks,
+                                                            self.current_castling_right.wqs,
+                                                            self.current_castling_right.bqs))
 
     def undo_move(self):
         if len(self.move_log) != 0:
@@ -87,8 +94,10 @@ class GameState:
 
             # undo castling
             self.castle_rights_log.pop()
-            castle_right = CastleRight(self.castle_rights_log[-1].wks, self.castle_rights_log[-1].bks,
-                                      self.castle_rights_log[-1].wqs, self.castle_rights_log[-1].bqs)
+            castle_right = GameState.CastleRight(self.castle_rights_log[-1].wks,
+                                                 self.castle_rights_log[-1].bks,
+                                                 self.castle_rights_log[-1].wqs,
+                                                 self.castle_rights_log[-1].bqs)
             self.current_castling_right = castle_right
 
             if move.is_castling_move:
@@ -136,9 +145,11 @@ class GameState:
                     self.current_castling_right.bks = False
 
     def get_valid_moves(self):
-        tmp_castle_rights = CastleRight(self.current_castling_right.wks, self.current_castling_right.bks,
-                                        self.current_castling_right.wqs, self.current_castling_right.bqs)
-        tmp_enapassant_possible = self.enpassant_possible
+        tmp_castle_rights = GameState.CastleRight(self.current_castling_right.wks,
+                                                  self.current_castling_right.bks,
+                                                  self.current_castling_right.wqs,
+                                                  self.current_castling_right.bqs)
+        tmp_enpassant_possible = self.enpassant_possible
         moves = self.get_all_possible_moves()
         if self.white_to_move:
             self.get_castle_moves(self.white_king_location[0], self.white_king_location[1], moves)
@@ -159,7 +170,7 @@ class GameState:
         else:
             self.checkmate = False
             self.stalemate = False
-        self.enpassant_possible = tmp_enapassant_possible
+        self.enpassant_possible = tmp_enpassant_possible
         self.current_castling_right = tmp_castle_rights
         return moves
 
@@ -343,15 +354,7 @@ class GameState:
                 moves.append(Move((r, c), (r, c - 2), self.board, is_castling_move=True))
 
 
-class CastleRight():
-    def __init__(self, wks, bks, wqs, bqs):
-        self.wks = wks
-        self.bks = bks
-        self.wqs = wqs
-        self.bqs = bqs
-
-
-class Move():
+class Move:
     ranks_to_rows = {"1": 7, "2": 6, "3": 5, "4": 4, "5": 3, "6": 2, "7": 1, "8": 0}
     rows_to_ranks = {v: k for k, v in ranks_to_rows.items()}
     files_to_cols = {"a": 0, "b": 1, "c": 2, "d": 3, "e": 4, "f": 5, "g": 6, "h": 7}
@@ -379,10 +382,6 @@ class Move():
         self.is_castling_move = is_castling_move
         self.is_capture = self.piece_captured != '--'
 
-    '''
-    Тут можно добавить нормальную шахматную нотацию
-    '''
-
     def get_chess_notation(self):
         return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
@@ -407,12 +406,10 @@ class Move():
             else:
                 return end_square
 
-            # add pawn promotions
-
-        # add another + checks and checkmates
-
-        # piece moves
         move_string = self.piece_moved[1]
         if self.is_capture:
             move_string += 'x'
         return move_string + end_square
+
+    def __lt__(self, other):
+        return str(self) < str(other)

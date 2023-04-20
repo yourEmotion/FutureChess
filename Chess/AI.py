@@ -120,6 +120,7 @@ def find_best_move(gs, valid_moves):
     count = 0
     return next_move
 
+
 def find_move_nega_max_alpha_beta(gs, valid_moves, depth, alpha, beta, turn_multiplier):
     global next_move, count
     if depth == 0:

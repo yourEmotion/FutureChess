@@ -1,6 +1,3 @@
-from PyQt5.QtWidgets import QApplication
-import sys
-from window import MainMenu
 import sys
 
 from PyQt5.QtWidgets import QApplication
