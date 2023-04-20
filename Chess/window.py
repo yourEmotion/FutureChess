@@ -59,6 +59,12 @@ class MainMenu(QMainWindow):
         self.buttons["Credits"].setStyleSheet("background-color: blue")
         self.buttons["Credits"].clicked.connect(self.credits_button_press)
 
+        self.font = defaultdict()
+        for button in self.buttons.keys():
+            self.font[button] = self.buttons[button].font()
+            self.font[button].setPointSize(26)
+            self.buttons[button].setFont(self.font[button])
+
     def play1v1_button_press(self):
         self.hide()
         game(white_is_human=True, black_is_human=True, board_color=BOARD_COLOR)
