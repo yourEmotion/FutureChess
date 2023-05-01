@@ -1,5 +1,7 @@
 import random
 import numpy as np
+from cache_decorator import Cache
+from dict_hash import Hashable
 from random import randint
 
 piece_score = {"K": 0, "Q": 1000, "R": 500, "B": 350, "N": 300, "p": 100}
@@ -102,9 +104,12 @@ black_king_scores = np.array([[0, 0, -5, 0, 15, 0, -10, 0],
                               [0, 0, -5, -5, -5, -5, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32)
 
-piece_positional_scores = {"wp": white_pawn_scores, "bp": black_pawn_scores, "wR": white_rook_scores, "bR": black_rook_scores,
-                           "wN": white_knight_scores, "bN": black_knight_scores, "wB": white_bishop_scores, "bB": black_bishop_scores,
-                           "wQ": white_queen_scores, "bQ": black_queen_scores, "wK": white_king_scores, "bK": black_king_scores}
+piece_positional_scores = {"wp": white_pawn_scores, "bp": black_pawn_scores, "wR": white_rook_scores,
+                           "bR": black_rook_scores,
+                           "wN": white_knight_scores, "bN": black_knight_scores, "wB": white_bishop_scores,
+                           "bB": black_bishop_scores,
+                           "wQ": white_queen_scores, "bQ": black_queen_scores, "wK": white_king_scores,
+                           "bK": black_king_scores}
 
 
 def find_random_move(valid_moves):
@@ -119,6 +124,7 @@ def find_best_move(gs, valid_moves):
     print(count)
     count = 0
     return next_move
+
 
 def find_move_nega_max_alpha_beta(gs, valid_moves, depth, alpha, beta, turn_multiplier):
     global next_move, count
